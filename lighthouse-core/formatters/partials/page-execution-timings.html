@@ -1,0 +1,156 @@
+<style>
+  .ut-measure_listing-duration {
+    font-weight: bold
+  }
+
+  .timeline-aggregated-info-legend > div {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .timeline-aggregated-legend-value {
+    display: inline-block;
+    width: 70px;
+    text-align: right;
+  }
+
+  .timeline-aggregated-legend-swatch {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin: 0 6px;
+    position: relative;
+    top: 1px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .timeline-aggregated-legend-javascript {
+    background-color: rgb(243, 210, 124);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .timeline-aggregated-legend-layout {
+    background-color: rgb(175, 153, 235);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .timeline-aggregated-legend-dom {
+    background-color: rgb(144, 183, 234);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .timeline-aggregated-legend-images {
+    background-color: rgb(144, 194, 133);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+  }
+
+  .timeline-aggregated-info-legend > div {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+</style>
+
+<ul class="subitem__details">
+  {{#each this}}
+    <li class="subitem__detail">
+        
+        <div class='timeline-aggregated-info-legend'>
+          <h4>JavaScript</h4>
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.compile }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-javascript'></span>
+              <span class='timeline-aggregated-legend-title'>Compile</span>
+            </div>
+
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.eval }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-javascript'></span>
+              <span class='timeline-aggregated-legend-title'>Evaluate</span>
+            </div>
+
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.minorGC }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-javascript'></span>
+              <span class='timeline-aggregated-legend-title'>Minor GC</span>
+            </div>
+
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.majorGC }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-javascript'></span>
+              <span class='timeline-aggregated-legend-title'>Major GC</span>
+            </div>
+
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.xhrReadyStateChange }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-javascript'></span>
+              <span class='timeline-aggregated-legend-title'>XHR Ready State Change</span>
+            </div>
+
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.xhrLoad }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-javascript'></span>
+              <span class='timeline-aggregated-legend-title'>XHR Load</span>
+            </div>
+        </div>
+
+        <div class='timeline-aggregated-info-legend'>
+          <h4>Layout, Composite, Paint &amp; Recalc Styles</h4>
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.layout }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-layout'></span>
+              <span class='timeline-aggregated-legend-title'>Layout</span>
+            </div>
+
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.composite }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-layout'></span>
+              <span class='timeline-aggregated-legend-title'>Composite</span>
+            </div>
+
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.paint }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-layout'></span>
+              <span class='timeline-aggregated-legend-title'>Paint</span>
+            </div>
+
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.recalcStyle }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-layout'></span>
+              <span class='timeline-aggregated-legend-title'>Recalculate Styles</span>
+            </div>
+        </div>
+
+        <div class='timeline-aggregated-info-legend'>
+          <h4>DOM, HTML &amp; CSS</h4>
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.parseHTML }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-dom'></span>
+              <span class='timeline-aggregated-legend-title'>Parse HTML</span>
+            </div>
+
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.parseCSS }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-dom'></span>
+              <span class='timeline-aggregated-legend-title'>Parse CSS</span>
+            </div>
+
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.domGC }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-dom'></span>
+              <span class='timeline-aggregated-legend-title'>DOM GC</span>
+            </div>
+        </div>
+
+        <div class='timeline-aggregated-info-legend'>
+          <h4>Images</h4>
+            <div>
+              <span class='timeline-aggregated-legend-value'>{{ decimal this.this.imageDecode }}ms</span>
+              <span class='timeline-aggregated-legend-swatch timeline-aggregated-legend-images'></span>
+              <span class='timeline-aggregated-legend-title'>Image Decode</span>
+            </div>
+        </div>
+    </li>
+  {{/each}}
+</ul>
