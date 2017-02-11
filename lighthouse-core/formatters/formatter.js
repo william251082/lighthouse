@@ -45,7 +45,8 @@ class Formatter {
       null: require('./null-formatter'),
       speedline: require('./speedline-formatter'),
       table: require('./table'),
-      userTimings: require('./user-timings')
+      userTimings: require('./user-timings'),
+      pageExecutionTimings: require('./page-execution-timings')
     };
   }
 
