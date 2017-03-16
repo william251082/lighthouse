@@ -34,6 +34,16 @@ module.exports = [
           }
         }
       },
+      'unused-javascript': {
+        score: false,
+        extendedInfo: {
+          value: {
+            results: {
+              length: 1
+            }
+          }
+        }
+      },
       'uses-optimized-images': {
         score: false,
         extendedInfo: {
