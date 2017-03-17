@@ -31,7 +31,7 @@ class UnusedJavaScript extends Audit {
       name: 'unused-javascript',
       description: 'Unused JavaScript',
       informative: true,
-      helpText: 'Try to elinimate unused script. ',
+      helpText: 'Remove unused javascript to reduce bytes consumed by network activity.',
       requiredArtifacts: ['JsUsage', 'networkRecords']
     };
   }

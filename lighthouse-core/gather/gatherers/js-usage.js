@@ -28,7 +28,7 @@ class JsUsage extends Gatherer {
       .catch(err => {
         // TODO(phulce): Remove this once JS usage hits stable
         if (/startPreciseCoverage/.test(err.message)) {
-          throw new Error('Js Usage tracking requires Chrome \u2265 58');
+          throw new Error('Unused JavaScript auditing requires Chrome \u2265 58');
         }
 
         throw err;
