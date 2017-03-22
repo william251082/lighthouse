@@ -19,7 +19,7 @@
 const Gatherer = require('./gatherer');
 
 /**
- * @fileoverview Tracks unused CSS rules.
+ * @fileoverview Tracks unused JavaScript
  */
 class JsUsage extends Gatherer {
   beforePass(options) {
