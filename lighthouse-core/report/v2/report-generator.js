@@ -115,6 +115,12 @@ class ReportGeneratorV2 {
       return Object.assign({}, category, {audits, score: categoryScore});
     });
 
+    // Add isPWA signal for PWA category.
+    const pwaCategory = categories.find(cat => cat.id === 'pwa');
+    if (pwaCategory) {
+      pwaCategory.isPWA = pwaCategory.score === 100;
+    }
+
     const overallScore = ReportGeneratorV2.arithmeticMean(categories);
     // TODO: remove aggregations when old report is fully replaced
     const aggregations = ReportGeneratorV2._getAggregations(categories);
