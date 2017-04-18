@@ -116,15 +116,17 @@ class ReportGeneratorV2 {
     });
 
     // Add isPWA signal for PWA category.
+    let isPWA = false;
     const pwaCategory = categories.find(cat => cat.id === 'pwa');
     if (pwaCategory) {
-      pwaCategory.isPWA = pwaCategory.score === 100;
+      isPWA = pwaCategory.score === 100;
+      pwaCategory.isPWA = isPWA;
     }
 
     const overallScore = ReportGeneratorV2.arithmeticMean(categories);
     // TODO: remove aggregations when old report is fully replaced
     const aggregations = ReportGeneratorV2._getAggregations(categories);
-    return {score: overallScore, categories, aggregations};
+    return {score: overallScore, categories, aggregations, isPWA};
   }
 
   /**
