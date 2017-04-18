@@ -93,6 +93,21 @@ describe('ReportRenderer V2', () => {
           '.lh-category > .lh-passed-audits > .lh-audit');
       assert.equal(audits.length, category.audits.length, 'renders correct number of audits');
     });
+
+    it('renders a pwa badge if PWA section is passing', () => {
+      const categories = {
+        'pwa': {description: '', isPWA: true, score: 100},
+        'pwa2': {description: '', isPWA: false, score: 30},
+        'categoryB': {description: ''}
+      };
+      assert.ok(renderer._renderCategoryScore(categories.pwa).querySelector('.lh-score__isPWA'),
+          'good pwa renders a badge');
+      assert.ok(!renderer._renderCategoryScore(categories.pwa2).querySelector('.lh-score__isPWA'),
+          'bad pwa does not render a badge');
+      assert.ok(!renderer._renderCategoryScore(
+          categories.categoryB).querySelector('.lh-score__isPWA'),
+          'other category does not render a pwa badge');
+    });
   });
 
   describe('grouping passed/failed', () => {

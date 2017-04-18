@@ -144,7 +144,16 @@ class ReportRenderer {
   _renderCategoryScore(category) {
     const tmpl = this._dom.cloneTemplate('#tmpl-lh-category-score', this._templateContext);
     const score = Math.round(category.score);
-    return this._populateScore(tmpl, score, 'numeric', category.name, category.description);
+    const element = this._populateScore(
+        tmpl, score, 'numeric', category.name, category.description);
+    if (category.isPWA) {
+      const titleEl = element.querySelector('.lh-score__title');
+      const link = titleEl.appendChild(this._dom.createSpanFromMarkdown(
+          '[✔](https://developers.google.com/web/progressive-web-apps/checklist#baseline)'));
+      link.classList.add('lh-score__isPWA');
+      link.title = 'Passed the items in the Baseline PWA Checklist.';
+    }
+    return element;
   }
 
   /**
