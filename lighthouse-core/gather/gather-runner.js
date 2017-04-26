@@ -238,13 +238,13 @@ class GatherRunner {
         // an object with a traceEvents property. Normalize to object form.
         passData.trace = Array.isArray(traceContents) ?
             {traceEvents: traceContents} : traceContents;
-        passData.devtoolsLog = driver.devtoolsLog;
         log.verbose('statusEnd', 'Retrieving trace');
       });
     }
 
     const status = 'Retrieving network records';
     pass = pass.then(_ => {
+      passData.devtoolsLog = driver.devtoolsLog;
       log.log('status', status);
       return driver.endNetworkCollect();
     }).then(networkRecords => {
