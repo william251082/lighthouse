@@ -59,11 +59,10 @@ class TotalByteWeight extends ByteEfficiencyAudit {
     return artifacts.requestNetworkRecords(devtoolsLogs).then(networkRecords => {
       return artifacts.requestNetworkThroughput(networkRecords).then(networkThroughput => {
         let totalBytes = 0;
-        const results = networkRecords.reduce((prev, record) => {
+        let results = [];
+        networkRecords.forEach(record => {
           // exclude data URIs since their size is reflected in other resources
-          if (record.scheme === 'data') {
-            return prev;
-          }
+          if (record.scheme === 'data') return;
 
           const result = {
             url: URL.getDisplayName(record.url),
@@ -73,9 +72,9 @@ class TotalByteWeight extends ByteEfficiencyAudit {
           };
 
           totalBytes += result.totalBytes;
-          prev.push(result);
-          return prev;
-        }, []).sort((itemA, itemB) => itemB.totalBytes - itemA.totalBytes).slice(0, 10);
+          results.push(result);
+        });
+        results = results.sort((itemA, itemB) => itemB.totalBytes - itemA.totalBytes).slice(0, 10);
 
 
         // Use the CDF of a log-normal distribution for scoring.
