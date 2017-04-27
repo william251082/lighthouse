@@ -44,6 +44,8 @@ class DetailsRenderer {
         return this._renderTable(/** @type {!DetailsRenderer.TableDetailsJSON} */ (details));
       case 'code':
         return this._renderCode(details);
+      case 'node':
+        return this._renderNode(/** @type {!DetailsRenderer.NodeDetailsJSON} */ (details));
       case 'list':
         return this._renderList(/** @type {!DetailsRenderer.ListDetailsJSON} */ (details));
       default:
@@ -144,6 +146,16 @@ class DetailsRenderer {
   }
 
   /**
+   * @param {!DetailsRenderer.NodeDetailsJSON} item
+   * @return {!Element}
+   */
+  _renderNode(item) {
+    const element = this._dom.createElement('span', 'lh-node');
+    element.textContent = item.description || item.text;
+    return element;
+  }
+
+  /**
    * @param {!DetailsRenderer.CardsDetailsJSON} details
    * @return {!Element}
    */
@@ -206,6 +218,16 @@ DetailsRenderer.DetailsJSON; // eslint-disable-line no-unused-expressions
  * }}
  */
 DetailsRenderer.ListDetailsJSON; // eslint-disable-line no-unused-expressions
+
+/**
+ * @typedef {{
+ *     type: string,
+ *     text: ({text: string}|undefined),
+ *     path: ({text: string}|undefined)
+ *     description: ({text: string}|undefined)
+ * }}
+ */
+DetailsRenderer.NodeDetailsJSON; // eslint-disable-line no-unused-expressions
 
 /** @typedef {{
  *     type: string,

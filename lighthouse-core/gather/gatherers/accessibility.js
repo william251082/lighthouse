@@ -28,6 +28,7 @@ const axeLibSource = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'ut
 /* istanbul ignore next */
 function runA11yChecks() {
   return window.axe.run(document, {
+    elementRef: true,
     runOnly: {
       type: 'tag',
       values: [
@@ -43,7 +44,37 @@ function runA11yChecks() {
       'blink': {enabled: false},
       'server-side-image-map': {enabled: false}
     }
+  }).then(axeResult => {
+    axeResult.violations.forEach(v => v.nodes.forEach(node =>
+      node.nodePath = getNodePath(node.element)));
+
+    return axeResult;
   });
+
+  // Adapated from DevTools' SDK.DOMNode.prototype.path
+  //   https://github.com/ChromeDevTools/devtools-frontend/blob/7a2e162ddefd/front_end/sdk/DOMModel.js#L530-L552
+  // TODO: Doesn't handle frames or shadow roots...
+  function getNodePath(node) {
+    function getNodeIndex(node) {
+      let index = 0;
+      while (node = node.previousSibling) {
+        /* global Node */ // skip empty text nodes
+        if (node.nodeType === Node.TEXT_NODE &&
+            node.textContent.trim().length === 0) continue;
+        index++;
+      }
+      return index;
+    }
+
+    const path = [];
+    while (node && node.parentNode) {
+      const index = getNodeIndex(node);
+      path.push([index, node.nodeName]);
+      node = node.parentNode;
+    }
+    path.reverse();
+    return path.join(',');
+  }
 }
 
 class Accessibility extends Gatherer {
@@ -58,15 +89,36 @@ class Accessibility extends Gatherer {
       return (${runA11yChecks.toString()}());
     })()`;
 
-    return driver
-      .evaluateAsync(expression)
-      .then(returnedValue => {
-        if (!returnedValue || !Array.isArray(returnedValue.violations)) {
-          throw new Error('Unable to parse axe results' + returnedValue);
-        }
+    return driver.evaluateAsync(expression).then(returnedValue => {
+      if (!returnedValue || !Array.isArray(returnedValue.violations)) {
+        throw new Error('Unable to parse axe results' + returnedValue);
+      }
+      // resolve readable node descriptions for display
+      const promises = [];
 
-        return returnedValue;
+      // DISABLED FOR NOW BECAUSE BROKEN
+      // returnedValue.violations.forEach(v =>
+      //   v.nodes.forEach(node => {
+      //     const p = this.getNodeDescription(node.nodePath, driver).then(
+      //       desc => (node.description = desc)
+      //     );
+      //     promises.push(p);
+      //   })
+      // );
+
+      return Promise.all(promises).then(_ => returnedValue);
+    });
+  }
+
+  getNodeDescription(path, driver) {
+    // currently this is failing.. not sure why when the equivalent is fine in devtools..
+    return Promise.resolve().then(_ => {
+      return driver.sendCommand('DOM.pushNodeByPathToFrontend', {path}).then(data => {
+        return driver.sendCommand('DOM.resolveNode', {nodeId: data.nodeId}).then(data => {
+          return data.object.description;
+        });
       });
+    });
   }
 }
 
