@@ -358,8 +358,8 @@ class GatherRunner {
                 tracingData.traces[passName] = passData.trace;
               }
 
+              // passData.networkRecords is now discarded and not added onto artifacts
               tracingData.devtoolsLogs[passName] = passData.devtoolsLog;
-              tracingData.networkRecords[passName] = passData.networkRecords;
 
               if (passIndex === 0) {
                 urlAfterRedirects = runOptions.url;

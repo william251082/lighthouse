@@ -483,9 +483,9 @@ describe('GatherRunner', function() {
     return GatherRunner.run(passes, options)
       .then(artifacts => {
         assert.ok(artifacts.traces.firstPass);
-        assert.ok(artifacts.networkRecords['firstPass' + 'DEPRECATED']);
+        assert.ok(artifacts.devtoolsLogs.firstPass);
         assert.ok(artifacts.traces.secondPass);
-        assert.ok(artifacts.networkRecords['secondPass' + 'DEPRECATED']);
+        assert.ok(artifacts.devtoolsLogs.secondPass);
       });
   });
 
@@ -508,8 +508,8 @@ describe('GatherRunner', function() {
     return GatherRunner.run(passes, options)
       .then(artifacts => {
         // todo, trash these
-        assert.ok(artifacts.networkRecords['firstPass' + 'DEPRECATED']);
-        assert.ok(artifacts.networkRecords['secondPass' + 'DEPRECATED']);
+        assert.equal(artifacts.networkRecords['firstPass'], undefined);
+        assert.equal(artifacts.networkRecords['secondPass'], undefined);
       });
   });
 
