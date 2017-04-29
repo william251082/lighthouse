@@ -5,22 +5,15 @@
  */
 
 'use strict';
-
-const ComputedArtifact = require('./computed-artifact');
 const NetworkRecorder = require('../../lib/network-recorder');
+const assert = require('assert');
+const devtoolsLogItems = require('../fixtures/perflog.json');
 
-class NetworkRecords extends ComputedArtifact {
-  get name() {
-    return 'NetworkRecords';
-  }
-
-  /**
-   * @param {method: string, params: !Object<string, *>} devtoolsLog
-   * @return {!NetworkRequests} networkRecords
-   */
-  compute_(devtoolsLog) {
-    return NetworkRecorder.recordsFromLogs(devtoolsLog);
-  }
-}
-
-module.exports = NetworkRecords;
+/* eslint-env mocha */
+describe('network recorder', function() {
+  it('recordsFromLogs expands into records', function() {
+    assert.equal(devtoolsLogItems.length, 555);
+    const records = NetworkRecorder.recordsFromLogs(devtoolsLogItems);
+    assert.equal(records.length, 76);
+  });
+});

@@ -378,15 +378,14 @@ describe('Config', () => {
           }
         }
       });
-
-      Object.assign(config.artifacts, Runner.instantiateComputedArtifacts());
+      const computed = Runner.instantiateComputedArtifacts();
 
       const traceUserTimings = require('../fixtures/traces/trace-user-timings.json');
       assert.deepStrictEqual(config.artifacts.traces.defaultPass.traceEvents, traceUserTimings);
       const devtoolsLogs = config.artifacts.devtoolsLogs.defaultPass;
       assert.equal(devtoolsLogs.length, 555);
 
-      return config.artifacts.requestNetworkRecords(devtoolsLogs).then(records => {
+      return computed.requestNetworkRecords(devtoolsLogs).then(records => {
         assert.equal(records.length, 76);
       });
     });
@@ -473,7 +472,7 @@ describe('Config', () => {
     it('should merge other values', () => {
       const artifacts = {
         traces: {defaultPass: '../some/long/path'},
-        devtoolsLogs: {defaultPass: 'path/to/performance/log'},
+        devtoolsLogs: {defaultPass: 'path/to/devtools/log'},
       };
       const configA = {};
       const configB = {extends: true, artifacts};

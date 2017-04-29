@@ -682,8 +682,12 @@ class Driver {
     });
   }
 
+  /**
+   * @param {!string} method
+   * @param {?Object} params
+   */
   recordNetworkEvent(method, params) {
-    if (!this._networkRecorder || !this._networkRecords) return;
+    if (!this._networkRecorder) return;
 
     const regexFilter = /^Network\./;
     if (!regexFilter.test(method)) return;
