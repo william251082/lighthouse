@@ -85,25 +85,10 @@ class TotalByteWeight extends ByteEfficiencyAudit {
           SCORING_MEDIAN, SCORING_POINT_OF_DIMINISHING_RETURNS);
         const score = 100 * distribution.computeComplementaryPercentile(totalBytes);
 
-<<<<<<< HEAD
-      return {
-        rawValue: totalBytes,
-        optimalValue: this.meta.optimalValue,
-        displayValue: `Total size was ${ByteEfficiencyAudit.bytesToKbString(totalBytes)}`,
-        score: Math.round(Math.max(0, Math.min(score, 100))),
-        extendedInfo: {
-          formatter: Formatter.SUPPORTED_FORMATS.TABLE,
-          value: {
-            results,
-            tableHeadings: {
-              url: 'URL',
-              totalKb: 'Total Size',
-              totalMs: 'Transfer Time',
-=======
         return {
           rawValue: totalBytes,
           optimalValue: this.meta.optimalValue,
-          displayValue: `Total size was ${Audit.bytesToKbString(totalBytes)}`,
+          displayValue: `Total size was ${ByteEfficiencyAudit.bytesToKbString(totalBytes)}`,
           score: Math.round(Math.max(0, Math.min(score, 100))),
           extendedInfo: {
             formatter: Formatter.SUPPORTED_FORMATS.TABLE,
@@ -114,7 +99,6 @@ class TotalByteWeight extends ByteEfficiencyAudit {
                 totalKb: 'Total Size',
                 totalMs: 'Transfer Time',
               }
->>>>>>> networkRecords computed artifact. (and some assertions that the data is good.)
             }
           }
         };

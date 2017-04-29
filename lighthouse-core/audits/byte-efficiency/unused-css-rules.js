@@ -172,7 +172,7 @@ class UnusedCSSRules extends ByteEfficiencyAudit {
     const usage = artifacts.CSSUsage;
     const pageUrl = artifacts.URL.finalUrl;
 
-    const devtoolsLogs = artifacts.devtoolsLogs[Audit.DEFAULT_PASS];
+    const devtoolsLogs = artifacts.devtoolsLogs[ByteEfficiencyAudit.DEFAULT_PASS];
     return artifacts.requestNetworkRecords(devtoolsLogs).then(networkRecords => {
       const indexedSheets = UnusedCSSRules.indexStylesheetsById(styles, networkRecords);
       UnusedCSSRules.countUnusedRules(usage, indexedSheets);
