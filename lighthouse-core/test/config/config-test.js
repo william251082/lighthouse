@@ -73,11 +73,9 @@ describe('Config', () => {
     const unlikelyPassName = 'unlikelyPassName';
     const configJson = {
       passes: [{
-        recordNetwork: true,
         passName: unlikelyPassName,
         gatherers: []
       }, {
-        recordNetwork: true,
         passName: unlikelyPassName,
         gatherers: []
       }],
@@ -101,10 +99,8 @@ describe('Config', () => {
   it('warns when traced twice with no passNames specified', () => {
     const configJson = {
       passes: [{
-        recordNetwork: true,
         gatherers: []
       }, {
-        recordNetwork: true,
         gatherers: []
       }],
       audits: []
@@ -299,7 +295,7 @@ describe('Config', () => {
       },
       passes: [
         {recordTrace: true, gatherers: []},
-        {recordNetwork: true, gatherers: ['accessibility']},
+        {gatherers: ['accessibility']},
       ],
       audits: [
         'accessibility/color-contrast',
@@ -421,7 +417,7 @@ describe('Config', () => {
     it('should merge passes', () => {
       const configA = {
         passes: [
-          {passName: 'passA', recordNetwork: true, gatherers: ['a']},
+          {passName: 'passA', gatherers: ['a']},
           {passName: 'passB', gatherers: ['b']},
           {gatherers: ['c']}
         ]

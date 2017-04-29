@@ -21,8 +21,7 @@
  */
 module.exports = {
   passes: [{
-    recordNetwork: true,
-    recordTrace: true,
+    ecordTrace: true,
     gatherers: [
       'url',
       'theme-color',
@@ -33,7 +32,6 @@ module.exports = {
   },
   {
     passName: 'offlinePass',
-    recordNetwork: true,
     gatherers: [
       'service-worker',
       'offline'
