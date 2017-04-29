@@ -85,9 +85,12 @@ describe('Config', () => {
     return new Promise((resolve, reject) => {
       const warningListener = function(args) {
         const warningMsg = args[1];
-        if (new RegExp(`overwrite.+${unlikelyPassName}`).test(warningMsg)) {
+        const isMatch = new RegExp(`overwrite.+${unlikelyPassName}`).test(warningMsg);
+        if (isMatch) {
           log.events.removeListener('warning', warningListener);
           resolve();
+        } else {
+          reject(isMatch);
         }
       };
       log.events.addListener('warning', warningListener);

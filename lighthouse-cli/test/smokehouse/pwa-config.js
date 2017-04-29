@@ -21,7 +21,7 @@
  */
 module.exports = {
   passes: [{
-    ecordTrace: true,
+    recordTrace: true,
     gatherers: [
       'url',
       'theme-color',
