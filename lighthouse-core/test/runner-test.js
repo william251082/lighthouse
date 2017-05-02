@@ -444,6 +444,7 @@ describe('Runner', () => {
     const url = 'https://example.com';
     const config = new Config({
       passes: [{
+        recordTrace: true,
         passName: 'firstPass',
         gatherers: ['viewport-dimensions']
       }],
