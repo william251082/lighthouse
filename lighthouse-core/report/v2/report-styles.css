@@ -25,6 +25,7 @@
   /*--accent-color: #3879d9;*/
   --fail-color: #df332f;
   --pass-color: #2b882f;
+  --informative-color: #0c50c7;
   --average-color: #ef6c00; /* md orange 800 */
   --warning-color: #757575; /* md grey 600 */
 
@@ -188,6 +189,16 @@ summary {
   border-radius: inherit;
 }
 
+.lh-score--informative .lh-score__value {
+  background: var(--informative-color);
+  border-radius: 50%;
+}
+
+.lh-score--informative .lh-score__value::after {
+  background: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>info</title><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="white"/></svg>') no-repeat 50% 50%;
+  background-size: calc(var(--lh-score-icon-background-size) * 2);
+}
+
 .lh-score__value--binary {
   text-indent: -5000px;
 }
@@ -241,13 +252,14 @@ summary {
   margin-top: calc(var(--default-padding) / 2);
 }
 
-.lh-score__header {
-  flex: 1;
-  margin-top: 2px;
+.lh-score__snippet {
+  align-items: center;
+  justify-content: space-between;
+  /*outline: none;*/
 }
 
-.lh-score__header[open] .lh-toggle-arrow {
-  transform: rotateZ(90deg);
+.lh-score__snippet::-moz-list-bullet {
+  display: none;
 }
 
 .lh-toggle-arrow {
@@ -263,18 +275,27 @@ summary {
   border: none;
 }
 
-.lh-score__snippet {
+/* Expandable Details (Audit Groups, Audits) */
+
+.lh-expandable-details {
+  flex: 1;
+  margin-top: 2px;
+}
+
+.lh-expandable-details__summary {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  /*outline: none;*/
+  cursor: pointer;
 }
 
-.lh-score__snippet::-moz-list-bullet {
-  display: none;
+.lh-expandable-details__header {
+  flex: 1;
 }
 
-.lh-score__snippet::-webkit-details-marker {
+.lh-expandable-details[open] > .lh-expandable-details__summary > .lh-toggle-arrow {
+  transform: rotateZ(90deg);
+}
+
+.lh-expandable-details__summary::-webkit-details-marker {
   display: none;
 }
 
@@ -291,6 +312,22 @@ summary {
 .lh-audit > .lh-score {
   font-size: 16px;
   font-size: var(--header-font-size);
+}
+
+/* Audit Group */
+
+.lh-audit-group {
+  margin-top: var(--default-padding);
+}
+
+.lh-audit-group__header {
+  font-size: 18px;
+}
+
+.lh-audit-group__description {
+  font-size: 16px;
+  color: var(--secondary-text-color);
+  margin-top: calc(var(--default-padding) / 2);
 }
 
 .lh-debug {
@@ -334,8 +371,8 @@ summary {
   border: none;
 }
 
-.lh-category > .lh-audit,
-.lh-category > .lh-passed-audits > .lh-audit {
+.lh-category .lh-audit,
+.lh-category .lh-audit-group {
   margin-left: calc(var(--lh-category-score-width) + var(--lh-score-margin));
 }
 

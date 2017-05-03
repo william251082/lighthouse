@@ -1,4 +1,4 @@
-# Lighthouse  [![Build Status](https://travis-ci.org/GoogleChrome/lighthouse.svg?branch=master)](https://travis-ci.org/GoogleChrome/lighthouse) [![Build Status Windows](https://ci.appveyor.com/api/projects/status/3bdm5qn9r32ha5cg/branch/master?svg=true)](https://ci.appveyor.com/project/paulirish/lighthouse) [![Coverage Status](https://coveralls.io/repos/github/GoogleChrome/lighthouse/badge.svg?branch=master)](https://coveralls.io/github/GoogleChrome/lighthouse?branch=master)
+# Lighthouse  [![Build Status](https://travis-ci.org/GoogleChrome/lighthouse.svg?branch=master)](https://travis-ci.org/GoogleChrome/lighthouse) [![Coverage Status](https://coveralls.io/repos/github/GoogleChrome/lighthouse/badge.svg?branch=master)](https://coveralls.io/github/GoogleChrome/lighthouse?branch=master)
 
 > Lighthouse analyzes web apps and web pages, collecting modern performance metrics and insights on developer best practices.
 
@@ -120,7 +120,7 @@ NOTE: specifying an output path with multiple formats ignores your specified ext
 
  - `chrome-debug`
  - open and login to your site
- - `lighthouse http://mysite.com`
+ - in a separate terminal tab `lighthouse http://mysite.com`
 
 ## Testing on a mobile device
 
