@@ -58,7 +58,7 @@ function getMockedEmulationDriver(emulationFn, netThrottleFn, cpuThrottleFn, blo
     cacheNatives() {
       return Promise.resolve();
     }
-    cleanAndDisableBrowserCaches() {}
+    cleanBrowserCaches() {}
     clearDataForOrigin() {}
     getUserAgent() {
       return Promise.resolve('Fake user agent');
@@ -259,7 +259,7 @@ describe('GatherRunner', function() {
       dismissJavaScriptDialogs: asyncFunc,
       enableRuntimeEvents: asyncFunc,
       cacheNatives: asyncFunc,
-      cleanAndDisableBrowserCaches: createCheck('calledDisableNetworkCache'),
+      cleanBrowserCaches: createCheck('calledDisableNetworkCache'),
       clearDataForOrigin: createCheck('calledClearStorage'),
       blockUrlPatterns: asyncFunc,
       getUserAgent: asyncFunc,
@@ -288,7 +288,7 @@ describe('GatherRunner', function() {
       dismissJavaScriptDialogs: asyncFunc,
       enableRuntimeEvents: asyncFunc,
       cacheNatives: asyncFunc,
-      cleanAndDisableBrowserCaches: createCheck('calledDisableNetworkCache'),
+      cleanBrowserCaches: createCheck('calledDisableNetworkCache'),
       clearDataForOrigin: createCheck('calledClearStorage'),
       blockUrlPatterns: asyncFunc,
       getUserAgent: asyncFunc,
