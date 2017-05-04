@@ -38,9 +38,8 @@ let GathererResults; // eslint-disable-line no-unused-vars
  *     ii. beginEmulation
  *     iii. enableRuntimeEvents
  *     iv. evaluateScriptOnLoad rescue native Promise from potential polyfill
- *     v. cleanBrowserCaches
- *     vi. clearDataForOrigin
- *     vii. blockUrlPatterns
+ *     v. clearDataForOrigin
+ *     vi. blockUrlPatterns
  *
  * 2. For each pass in the config:
  *   A. GatherRunner.beforePass()
@@ -49,7 +48,8 @@ let GathererResults; // eslint-disable-line no-unused-vars
  *   B. GatherRunner.pass()
  *     i. beginTrace (if requested) & beginDevtoolsLog
  *     ii. GatherRunner.loadPage()
- *       a. navigate to options.url (and wait for onload)
+ *       a. cleanBrowserCaches
+ *       b. navigate to options.url (and wait for onload)
  *     iii. all gatherers' pass()
  *   C. GatherRunner.afterPass()
  *     i. endTrace (if requested) & endDevtoolsLog & endThrottling
@@ -86,13 +86,20 @@ class GatherRunner {
    * @return {!Promise}
    */
   static loadPage(driver, options) {
-    return driver.gotoURL(options.url, {
-      waitForLoad: true,
-      disableJavaScript: !!options.disableJavaScript,
-      flags: options.flags,
-    }).then(finalUrl => {
-      options.url = finalUrl;
-    });
+    const resetStorage = !options.flags.disableStorageReset;
+    const recordTrace = options.config.recordTrace;
+    const useThrottling = options.config.useThrottling;
+    return Promise.resolve()
+      // Clear disk & memory cache if it's a perf run
+      .then(_ => resetStorage && recordTrace && useThrottling && driver.cleanBrowserCaches())
+      // Navigate.
+      .then(_ => driver.gotoURL(options.url, {
+        waitForLoad: true,
+        disableJavaScript: !!options.disableJavaScript,
+        flags: options.flags,
+      })).then(finalUrl => {
+        options.url = finalUrl;
+      });
   }
 
   /**
@@ -110,7 +117,6 @@ class GatherRunner {
       .then(_ => driver.enableRuntimeEvents())
       .then(_ => driver.cacheNatives())
       .then(_ => driver.dismissJavaScriptDialogs())
-      .then(_ => resetStorage && driver.cleanBrowserCaches())
       .then(_ => resetStorage && driver.clearDataForOrigin(options.url))
       .then(_ => driver.blockUrlPatterns(options.flags.blockedUrlPatterns || []))
       .then(_ => gathererResults.UserAgent = [driver.getUserAgent()]);

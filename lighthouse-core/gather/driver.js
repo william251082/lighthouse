@@ -774,9 +774,9 @@ class Driver {
   }
 
   cleanBrowserCaches() {
-    // wipe entire disk cache
+    // Wipe entire disk cache
     return this.sendCommand('Network.clearBrowserCache')
-      // toggle 'Disable Cache' to evict the memory cache
+      // Toggle 'Disable Cache' to evict the memory cache
       .then(_ => this.sendCommand('Network.setCacheDisabled', {cacheDisabled: true}))
       .then(_ => this.sendCommand('Network.setCacheDisabled', {cacheDisabled: false}));
   }
