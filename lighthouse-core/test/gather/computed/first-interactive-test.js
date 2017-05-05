@@ -64,7 +64,7 @@ describe('FirstInteractive computed artifact:', () => {
 
     it('should throw when trace is not long enough after FMP', () => {
       assert.throws(() => {
-        firstInteractive.computeWithArtifacts({}, {}, {
+        firstInteractive.computeWithArtifacts({
           timings: {
             firstMeaningfulPaint: 3400,
             traceEnd: 4500,
@@ -79,7 +79,7 @@ describe('FirstInteractive computed artifact:', () => {
     it('should return FMP when no trace events are found', () => {
       mainThreadEvents = [];
 
-      const result = firstInteractive.computeWithArtifacts({}, {}, {
+      const result = firstInteractive.computeWithArtifacts({
         timings: {
           firstMeaningfulPaint: 3400,
           domContentLoaded: 2000,
@@ -97,7 +97,7 @@ describe('FirstInteractive computed artifact:', () => {
     it('should not return a time earlier than FMP', () => {
       mainThreadEvents = [];
 
-      const result = firstInteractive.computeWithArtifacts({}, {}, {
+      const result = firstInteractive.computeWithArtifacts({
         timings: {
           firstMeaningfulPaint: 3400,
           domContentLoaded: 2000,
@@ -114,7 +114,7 @@ describe('FirstInteractive computed artifact:', () => {
     it('should return DCL when DCL is after FMP', () => {
       mainThreadEvents = [];
 
-      const result = firstInteractive.computeWithArtifacts({}, {}, {
+      const result = firstInteractive.computeWithArtifacts({
         timings: {
           firstMeaningfulPaint: 3400,
           domContentLoaded: 7000,
@@ -133,7 +133,7 @@ describe('FirstInteractive computed artifact:', () => {
         {start: 5000, end: 5100},
       ];
 
-      const result = firstInteractive.computeWithArtifacts({}, {}, {
+      const result = firstInteractive.computeWithArtifacts({
         timings: {
           firstMeaningfulPaint: 3400,
           domContentLoaded: 7000,
@@ -154,7 +154,7 @@ describe('FirstInteractive computed artifact:', () => {
         {start: 12000, end: 12100}, // light task
       ];
 
-      const result = firstInteractive.computeWithArtifacts({}, {}, {
+      const result = firstInteractive.computeWithArtifacts({
         timings: {
           firstMeaningfulPaint: 3400,
           domContentLoaded: 2300,

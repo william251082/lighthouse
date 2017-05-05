@@ -45,13 +45,13 @@ class EstimatedInputLatency extends Audit {
     };
   }
 
-  static calculate(tabTrace, model, trace) {
+  static calculate(tabTrace) {
     const startTime = tabTrace.timings.firstMeaningfulPaint;
     if (!startTime) {
       throw new Error('No firstMeaningfulPaint event found in trace');
     }
 
-    const latencyPercentiles = TracingProcessor.getRiskToResponsiveness(model, trace, startTime);
+    const latencyPercentiles = TracingProcessor.getRiskToResponsiveness(tabTrace, startTime);
     const ninetieth = latencyPercentiles.find(result => result.percentile === 0.9);
     const rawValue = parseFloat(ninetieth.time.toFixed(1));
 
@@ -86,12 +86,8 @@ class EstimatedInputLatency extends Audit {
   static audit(artifacts) {
     const trace = artifacts.traces[this.DEFAULT_PASS];
 
-    const pending = [
-      artifacts.requestTraceOfTab(trace),
-      artifacts.requestTracingModel(trace)
-    ];
-    return Promise.all(pending).then(([tabTrace, model]) => {
-      return EstimatedInputLatency.calculate(tabTrace, model, trace);
+    return artifacts.requestTraceOfTab(trace).then(tabTrace => {
+      return EstimatedInputLatency.calculate(tabTrace);
     });
   }
 }

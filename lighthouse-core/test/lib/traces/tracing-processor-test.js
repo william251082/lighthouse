@@ -22,6 +22,8 @@ const assert = require('assert');
 const pwaTrace = require('../../fixtures/traces/progressive-app.json');
 const defaultPercentiles = [0, 0.25, 0.5, 0.75, 0.9, 0.99, 1];
 
+const TraceOfTab = require('../../../gather/computed/trace-of-tab');
+
 /**
  * Create a riskPercentiles result object by matching the values in percentiles
  * and times.
@@ -188,10 +190,10 @@ describe('TracingProcessor lib', () => {
 
   describe('risk to responsiveness', () => {
     it('gets durations of top-level tasks', () => {
-      const tracingProcessor = new TracingProcessor();
-      const model = tracingProcessor.init(pwaTrace);
+      TracingProcessor = require('../../../lib/traces/tracing-processor');
       const trace = {traceEvents: pwaTrace};
-      const ret = TracingProcessor.getMainThreadTopLevelEventDurations(model, trace);
+      const tabTrace = new TraceOfTab().compute_(trace);
+      const ret = TracingProcessor.getMainThreadTopLevelEventDurations(tabTrace);
       const durations = ret.durations;
 
       function getDurationFromIndex(index) {
@@ -207,6 +209,42 @@ describe('TracingProcessor lib', () => {
       assert.equal(getDurationFromIndex(durations.length - 3), 26.01);
       assert.equal(getDurationFromIndex(durations.length - 2), 36.9);
       assert.equal(getDurationFromIndex(durations.length - 1), 38.53);
+    });
+  });
+
+  describe('risk to responsiveness', () => {
+    let oldFn;
+    // monkeypatch _riskPercentiles to deal with gRtR solo
+    beforeEach(() => {
+      TracingProcessor = require('../../../lib/traces/tracing-processor');
+      oldFn = TracingProcessor._riskPercentiles;
+      TracingProcessor._riskPercentiles = (durations, totalTime, percentiles, clippedLength) => {
+        return {
+          durations, totalTime, percentiles, clippedLength
+        };
+      };
+    });
+
+    it('gets durations of top-level tasks', () => {
+      const trace = {traceEvents: pwaTrace};
+      const tabTrace = new TraceOfTab().compute_(trace);
+
+      const ret = TracingProcessor.getRiskToResponsiveness(tabTrace);
+      const durations = ret.durations;
+
+      assert.equal(durations.filter(dur => isNaN(dur)).length, 0, 'NaN found');
+      assert.equal(durations.filter(dur => dur === Infinity).length, 0, 'Infinity found');
+      assert.equal(durations.length, 291, 'count of durations is unexpected');
+      assert.equal(durations[50], 0.019);
+      assert.equal(durations[100], 0.072);
+      assert.equal(durations[200], 0.768);
+      assert.equal(durations[durations.length - 3].toFixed(2), '26.32');
+      assert.equal(durations[durations.length - 2].toFixed(2), '37.61');
+      assert.equal(durations[durations.length - 1].toFixed(2), '40.10');
+    });
+
+    afterEach(() => {
+      TracingProcessor._riskPercentiles = oldFn;
     });
   });
 });

@@ -38,7 +38,7 @@ class TraceOfTab extends ComputedArtifact {
 
   /**
    * @param {{traceEvents: !Array}} trace
-   * @return {!{processEvents: !Array<TraceEvent>, startedInPageEvt: TraceEvent, navigationStartEvt: TraceEvent, firstContentfulPaintEvt: TraceEvent, firstMeaningfulPaintEvt: TraceEvent}}
+   * @return {!TraceOfTabArtifact}
   */
   compute_(trace) {
     // Parse the trace for our key events and sort them by timestamp.

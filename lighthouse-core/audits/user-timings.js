@@ -57,26 +57,26 @@ class UserTimings extends Audit {
       // reject these "userTiming" events that aren't really UserTiming, by nuking ones with frame data (or requestStart)
       // https://cs.chromium.org/search/?q=trace_event.*?user_timing&sq=package:chromium&type=cs
       return evt.name !== 'requestStart' &&
-          evt.name !== 'navigationStart' &&
           evt.name !== 'paintNonDefaultBackgroundColor' &&
           evt.args.frame === undefined;
     })
     .forEach(ut => {
       // Mark events fall under phases R and I (or i)
       if (ut.ph === 'R' || ut.ph.toUpperCase() === 'I') {
-        userTimings.push({
-          name: ut.name,
-          isMark: true,
-          args: ut.args,
-          startTime: ut.ts
-        });
-
-      // Beginning of measure event, keep track of this events start time
+        // Add user timings event to array
+        if (ut.name !== 'navigationStart') {
+          userTimings.push({
+            name: ut.name,
+            isMark: true,
+            args: ut.args,
+            startTime: ut.ts
+          });
+        }
       } else if (ut.ph.toLowerCase() === 'b') {
+        // Beginning of measure event, keep track of this events start time
         measuresStartTimes[ut.name] = ut.ts;
-
-      // End of measure event
       } else if (ut.ph.toLowerCase() === 'e') {
+        // End of measure event
         userTimings.push({
           name: ut.name,
           isMark: false,
