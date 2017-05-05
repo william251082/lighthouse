@@ -242,10 +242,10 @@ describe('GatherRunner', function() {
     });
   });
 
-  it('clears the network cache and origin storage', () => {
+  it('clears origin storage', () => {
     const asyncFunc = () => Promise.resolve();
     const tests = {
-      calledDisableNetworkCache: false,
+      calledCleanBrowserCaches: false,
       calledClearStorage: false,
     };
     const createCheck = variable => () => {
@@ -259,22 +259,22 @@ describe('GatherRunner', function() {
       dismissJavaScriptDialogs: asyncFunc,
       enableRuntimeEvents: asyncFunc,
       cacheNatives: asyncFunc,
-      cleanBrowserCaches: createCheck('calledDisableNetworkCache'),
+      cleanBrowserCaches: createCheck('calledCleanBrowserCaches'),
       clearDataForOrigin: createCheck('calledClearStorage'),
       blockUrlPatterns: asyncFunc,
       getUserAgent: asyncFunc,
     };
 
     return GatherRunner.setupDriver(driver, {}, {flags: {}}).then(_ => {
-      assert.equal(tests.calledDisableNetworkCache, true);
+      assert.equal(tests.calledCleanBrowserCaches, false);
       assert.equal(tests.calledClearStorage, true);
     });
   });
 
-  it('does not clear the cache & storage when disable-storage-reset flag is set', () => {
+  it('does not clear origin storage with flag --disable-storage-reset', () => {
     const asyncFunc = () => Promise.resolve();
     const tests = {
-      calledDisableNetworkCache: false,
+      calledCleanBrowserCaches: false,
       calledClearStorage: false,
     };
     const createCheck = variable => () => {
@@ -288,7 +288,7 @@ describe('GatherRunner', function() {
       dismissJavaScriptDialogs: asyncFunc,
       enableRuntimeEvents: asyncFunc,
       cacheNatives: asyncFunc,
-      cleanBrowserCaches: createCheck('calledDisableNetworkCache'),
+      cleanBrowserCaches: createCheck('calledCleanBrowserCaches'),
       clearDataForOrigin: createCheck('calledClearStorage'),
       blockUrlPatterns: asyncFunc,
       getUserAgent: asyncFunc,
@@ -297,7 +297,7 @@ describe('GatherRunner', function() {
     return GatherRunner.setupDriver(driver, {}, {
       flags: {disableStorageReset: true}
     }).then(_ => {
-      assert.equal(tests.calledDisableNetworkCache, false);
+      assert.equal(tests.calledCleanBrowserCaches, false);
       assert.equal(tests.calledClearStorage, false);
     });
   });
