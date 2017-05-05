@@ -56,7 +56,6 @@ class CategoryRenderer {
 
     // Append audit details to header section so the entire audit is within a <details>.
     const header = /** @type {!HTMLDetailsElement} */ (this._dom.find('.lh-score__header', tmpl));
-    header.open = audit.score < 100; // expand failed audits
     if (audit.result.details) {
       header.appendChild(this._detailsRenderer.render(audit.result.details));
     }
@@ -98,6 +97,11 @@ class CategoryRenderer {
   _renderCategoryScore(category) {
     const tmpl = this._dom.cloneTemplate('#tmpl-lh-category-score', this._templateContext);
     const score = Math.round(category.score);
+
+    const gaugeContainerEl = this._dom.find('.lh-score__gauge', tmpl);
+    const gaugeEl = this.renderScoreGauge(category);
+    gaugeContainerEl.appendChild(gaugeEl);
+
     return this._populateScore(tmpl, score, 'numeric', category.name, category.description);
   }
 
@@ -233,9 +237,12 @@ class CategoryRenderer {
     element.id = category.id;
     element.appendChild(this._renderCategoryScore(category));
 
-    const auditsGroupedByGroup = category.audits.reduce((indexed, audit) => {
+    const auditsGroupedByGroup = /** @type {!Object<string,
+        {passed: !Array<!ReportRenderer.AuditJSON>,
+        failed: !Array<!ReportRenderer.AuditJSON>}>} */ ({});
+    category.audits.forEach(audit => {
       const groupId = audit.group;
-      const groups = indexed[groupId] || {passed: [], failed: []};
+      const groups = auditsGroupedByGroup[groupId] || {passed: [], failed: []};
 
       if (audit.score === 100) {
         groups.passed.push(audit);
@@ -243,11 +250,10 @@ class CategoryRenderer {
         groups.failed.push(audit);
       }
 
-      indexed[groupId] = groups;
-      return indexed;
-    }, {});
+      auditsGroupedByGroup[groupId] = groups;
+    });
 
-    const passedElements = [];
+    const passedElements = /** @type {!Array<!Element>} */ ([]);
     Object.keys(auditsGroupedByGroup).forEach(groupId => {
       const group = groupDefinitions[groupId];
       const groups = auditsGroupedByGroup[groupId];
