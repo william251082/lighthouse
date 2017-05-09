@@ -171,12 +171,8 @@ window.runLighthouseInWorker = function(port, url, options, categoryIDs) {
  */
 window.createReportPageAsBlob = function(results) {
   performance.mark('report-start');
-  let html;
-  try {
-    html = new ReportGeneratorV2().generateReportHtml(results);
-  } catch (err) {
-    html = new ReportGenerator().renderException(err, results);
-  }
+  const html = new ReportGeneratorV2().generateReportHtml(results);
+
   const blob = new Blob([html], {type: 'text/html'});
   const blobURL = window.URL.createObjectURL(blob);
 
