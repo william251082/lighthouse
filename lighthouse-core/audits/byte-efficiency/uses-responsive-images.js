@@ -41,9 +41,10 @@ class UsesResponsiveImages extends ByteEfficiencyAudit {
       description: 'Properly size images',
       informative: true,
       helpText:
-        'Image sizes served should be based on the device display size to save network bytes. ' +
-        'Learn more about [responsive images](https://developers.google.com/web/fundamentals/design-and-ui/media/images) ' +
-        'and [client hints](https://developers.google.com/web/updates/2015/09/automating-resource-selection-with-client-hints).',
+        'Serve images that are smaller than the user\'s viewport to save cellular data ' +
+        'and improve load time. Consider using responsive images or client hints for the ' +
+        'following images. ' +
+        '[Learn more](https://developers.google.com/web/tools/lighthouse/audits/oversized-images).',
       requiredArtifacts: ['ImageUsage', 'ViewportDimensions', 'devtoolsLogs']
     };
   }
