@@ -15,15 +15,78 @@
  */
 'use strict';
 
-/* globals self */
+/* globals self Util */
+
+/**
+ * Create render context for critical-request-chain tree display.
+ * @param {!DetailsRenderer.CRCNode} tree
+ * @return {!{tree: DetailsRenderer.CRCNode, startTime: number, transferSize: number}}
+ */
+function initTree(tree) {
+  const transferSize = 0;
+  let startTime = 0;
+  const rootNodes = Object.keys(tree);
+  if (rootNodes.length > 0) {
+    startTime = tree[rootNodes[0]].request.startTime;
+  }
+
+  return {tree, startTime, transferSize};
+}
+
+/**
+ * Helper to create context for each critical-request-chain node based on its
+ * parent. Calculates if this node is the last child, whether it has any
+ * children itself and what the tree looks like all the way back up to the
+ * root, so the tree markers can be drawn correctly.
+ * @param {!DetailsRenderer.CRCNode} parent
+ * @param {string} id
+ * @param {!(Array<boolean>|undefined)} treeMarker
+ * @param {!(DetailsRenderer.CRCNode|undefined)} parentIsLastChild
+ * @param {number} startTime
+ * @param {number} transferSize
+ * @return {!DetailsRenderer.CRCSegment}
+ */
+function createSegment(parent, id, treeMarkers, parentIsLastChild, startTime, transferSize) {
+  const node = parent[id];
+  const siblings = Object.keys(parent);
+  const isLastChild = siblings.indexOf(id) === (siblings.length - 1);
+  const hasChildren = Object.keys(node.children).length > 0;
+
+  // Copy the tree markers so that we don't change by reference.
+  const newTreeMarkers = Array.isArray(treeMarkers) ? treeMarkers.slice(0) : [];
+
+  // Add on the new entry.
+  if (typeof parentIsLastChild !== 'undefined') {
+    newTreeMarkers.push(!parentIsLastChild);
+  }
+
+  return {
+    node,
+    isLastChild,
+    hasChildren,
+    startTime,
+    transferSize: (transferSize + node.request.transferSize),
+    treeMarkers: newTreeMarkers
+  };
+}
+
 
 class DetailsRenderer {
   /**
    * @param {!DOM} dom
    */
-  constructor(dom) {
+  constructor(dom, templateContext) {
     /** @private {!DOM} */
     this._dom = dom;
+    /** @private {!Document|!Element} */
+    this._templateContext = templateContext;
+  }
+
+  /**
+   * @param {!Document|!Element} context
+   */
+  setTemplateContext(context) {
+    this._templateContext = context;
   }
 
   /**
@@ -46,6 +109,8 @@ class DetailsRenderer {
         return this._renderCode(details);
       case 'node':
         return this.renderNode(/** @type {!DetailsRenderer.NodeDetailsJSON} */(details));
+      case 'tree':
+        return this._renderCriticalRequestChains(details);
       case 'list':
         return this._renderList(/** @type {!DetailsRenderer.ListDetailsJSON} */ (details));
       default:
@@ -110,7 +175,6 @@ class DetailsRenderer {
     element.appendChild(itemsElem);
     return element;
   }
-
 
   /**
    * @param {!DetailsRenderer.TableDetailsJSON} details
@@ -193,6 +257,107 @@ class DetailsRenderer {
     pre.textContent = details.text;
     return pre;
   }
+
+  /**
+   * @param {!DetailsRenderer.DetailsJSON} details
+   * @return {!Node}
+   */
+  _renderCriticalRequestChains(details) {
+    const tmpl = this._dom.cloneTemplate('#tmpl-lh-crc', this._templateContext);
+
+    // Fill in top summary.
+    this._dom.find('.lh-crc__longest_duration', tmpl).textContent =
+        Util.formatNumber(details.longestChain.duration) + 'ms';
+    this._dom.find('.lh-crc__longest_length', tmpl).textContent = details.longestChain.length;
+    this._dom.find('.lh-crc__longest_transfersize', tmpl).textContent =
+        Util.formateBytesToKB(details.longestChain.transferSize) + 'KB';
+
+    const detailsEl = this._dom.find('.lh-details', tmpl);
+
+    this._dom.find(':scope > summary', detailsEl).textContent = details.header.text;
+
+    /**
+     * Creates the DOM for a tree segment.
+     * @param {!DetailsRenderer.CRCSegment} segment
+     */
+    const createChainNode = segment => {
+      const chainsEl = this._dom.cloneTemplate('#tmpl-lh-crc__chains', tmpl);
+
+      // Hovering over request shows full URL.
+      this._dom.find('.crc-node', chainsEl).setAttribute('title', segment.node.request.url);
+
+      const treeMarkeEl = this._dom.find('.crc-node__tree-marker', chainsEl);
+
+      // Construct lines and add spacers for sub requests.
+      segment.treeMarkers.forEach(separator => {
+        if (separator) {
+          treeMarkeEl.appendChild(this._dom.createElement('span', 'tree-marker vert'));
+          treeMarkeEl.appendChild(this._dom.createElement('span', 'tree-marker space'));
+        } else {
+          treeMarkeEl.appendChild(this._dom.createElement('span', 'tree-marker space'));
+          treeMarkeEl.appendChild(this._dom.createElement('span', 'tree-marker space'));
+        }
+      });
+
+      if (segment.isLastChild) {
+        treeMarkeEl.appendChild(this._dom.createElement('span', 'tree-marker up-right'));
+        treeMarkeEl.appendChild(this._dom.createElement('span', 'tree-marker right'));
+      } else {
+        treeMarkeEl.appendChild(this._dom.createElement('span', 'tree-marker vert-right'));
+        treeMarkeEl.appendChild(this._dom.createElement('span', 'tree-marker right'));
+      }
+
+      if (segment.hasChildren) {
+        treeMarkeEl.appendChild(this._dom.createElement('span', 'tree-marker horiz-down'));
+      } else {
+        treeMarkeEl.appendChild(this._dom.createElement('span', 'tree-marker right'));
+      }
+
+      // Fill in url, host, and request size information.
+      const {file, hostname} = Util.parseURL(segment.node.request.url);
+      const treevalEl = this._dom.find('.crc-node__tree-value', chainsEl);
+      this._dom.find('.crc-node__tree-file', treevalEl).textContent = `${file}`;
+      this._dom.find('.crc-node__tree-hostname', treevalEl).textContent = `(${hostname})`;
+
+      if (!segment.hasChildren) {
+        const span = this._dom.createElement('span', 'crc-node__chain-duration');
+        span.textContent = ' - ' + Util.chainDuration(
+            segment.node.request.startTime, segment.node.request.endTime) + 'ms, ';
+        const span2 = this._dom.createElement('span', 'crc-node__chain-duration');
+        span2.textContent = Util.formateBytesToKB(details.longestChain.transferSize) + 'KB';
+
+        treevalEl.appendChild(span);
+        treevalEl.appendChild(span2);
+      }
+
+      return chainsEl;
+    };
+
+    /**
+     * Recursively builds a tree from segments.
+     * @param {!DetailsRenderer.CRCSegment} segment
+     */
+    function buildTree(segment) {
+      detailsEl.appendChild(createChainNode(segment));
+
+      for (const key of Object.keys(segment.node.children)) {
+        const childSegment = createSegment(
+            segment.node.children, key, segment.treeMarkers, segment.isLastChild,
+            segment.startTime, segment.transferSize);
+        buildTree(childSegment);
+      }
+    }
+
+    const root = initTree(details.chains);
+
+    for (const key of Object.keys(root.tree)) {
+      const segment = createSegment(root.tree, key, undefined, undefined,
+          root.startTime, root.transferSize);
+      buildTree(segment);
+    }
+
+    return tmpl;
+  }
 }
 
 if (typeof module !== 'undefined' && module.exports) {
@@ -255,7 +420,6 @@ DetailsRenderer.NodeDetailsJSON; // eslint-disable-line no-unused-expressions
  */
 DetailsRenderer.TableDetailsJSON; // eslint-disable-line no-unused-expressions
 
-
 /** @typedef {{
  *     type: string,
  *     url: ({text: string}|undefined),
@@ -263,3 +427,32 @@ DetailsRenderer.TableDetailsJSON; // eslint-disable-line no-unused-expressions
  * }}
  */
 DetailsRenderer.ThumbnailDetails; // eslint-disable-line no-unused-expressions
+
+/** @typedef {{
+ *     children: {number: DetailsRenderer.CRCRequest},
+ *     request: DetailsRenderer.CRCRequest
+ * }}
+ */
+DetailsRenderer.CRCNode; // eslint-disable-line no-unused-expressions
+
+
+/** @typedef {{
+ *     endTime: number,
+ *     responseReceivedTime: number,
+ *     startTime: number,
+ *     transferTime: number,
+ *     url: string
+ * }}
+ */
+DetailsRenderer.CRCRequest; // eslint-disable-line no-unused-expressions
+
+/** @typedef {{
+ *     node: DetailsRenderer.CRCNode,
+ *     isLastChild: boolean,
+ *     hasChildren: boolean,
+ *     startTime: number,
+ *     transferSize: number,
+ *     treeMarkers: !Array<boolean>
+ * }}
+ */
+ DetailsRenderer.CRCSegment; // eslint-disable-line no-unused-expressions

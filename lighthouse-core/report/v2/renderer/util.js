@@ -15,7 +15,9 @@
  */
 'use strict';
 
-/* globals self */
+/* globals self URL */
+
+const ELLIPSIS = '\u2026';
 
 const RATINGS = {
   PASS: {label: 'pass', minScore: 75},
@@ -49,6 +51,15 @@ class Util {
   }
 
   /**
+   * @param {number} size
+   * @param {number=} decimalPlaces Number of decimal places to include. Defaults to 2.
+   * @return {string}
+   */
+  static formateBytesToKB(size, decimalPlaces = 2) {
+    return (size / 1024).toLocaleString(undefined, {maximumFractionDigits: decimalPlaces});
+  }
+
+  /**
    * Format time.
    * @param {string} date
    * @return {string}
@@ -68,6 +79,86 @@ class Util {
       formatter = new Intl.DateTimeFormat('en-US', options);
     }
     return formatter.format(new Date(date));
+  }
+
+  /**
+   * @param {!URL} parsedUrl
+   * @param {{numPathParts: number, preserveQuery: boolean, preserveHost: boolean}=} options
+   * @return {string}
+   */
+  static getDisplayName(parsedUrl, options) {
+    options = Object.assign({
+      numPathParts: 2,
+      preserveQuery: true,
+      preserveHost: false,
+    }, options);
+
+    let name;
+
+    if (parsedUrl.protocol === 'about:' || parsedUrl.protocol === 'data:') {
+      // Handle 'about:*' and 'data:*' URLs specially since they have no path.
+      name = parsedUrl.href;
+    } else {
+      name = parsedUrl.pathname;
+      const parts = name.split('/').filter(part => part.length);
+      if (options.numPathParts && parts.length > options.numPathParts) {
+        name = ELLIPSIS + parts.slice(-1 * options.numPathParts).join('/');
+      }
+
+      if (options.preserveHost) {
+        name = `${parsedUrl.host}/${name.replace(/^\//, '')}`;
+      }
+      if (options.preserveQuery) {
+        name = `${name}${parsedUrl.search}`;
+      }
+    }
+
+    const MAX_LENGTH = 64;
+    // Always elide hash
+    name = name.replace(/([a-f0-9]{7})[a-f0-9]{13}[a-f0-9]*/g, `$1${ELLIPSIS}`);
+
+    // Elide query params first
+    if (name.length > MAX_LENGTH && name.includes('?')) {
+      // Try to leave the first query parameter intact
+      name = name.replace(/\?([^=]*)(=)?.*/, `?$1$2${ELLIPSIS}`);
+
+      // Remove it all if it's still too long
+      if (name.length > MAX_LENGTH) {
+        name = name.replace(/\?.*/, `?${ELLIPSIS}`);
+      }
+    }
+
+    // Elide too long names next
+    if (name.length > MAX_LENGTH) {
+      const dotIndex = name.lastIndexOf('.');
+      if (dotIndex >= 0) {
+        name = name.slice(0, MAX_LENGTH - 1 - (name.length - dotIndex)) +
+            // Show file extension
+            `${ELLIPSIS}${name.slice(dotIndex)}`;
+      } else {
+        name = name.slice(0, MAX_LENGTH - 1) + ELLIPSIS;
+      }
+    }
+
+    return name;
+  }
+
+  /**
+   * Split a URL into a file and hostname for easy display.
+   * @param {string} url
+   * @return {!{file: string, hostname: string}}
+   */
+  static parseURL(url) {
+    return {file: this.getDisplayName(new URL(url)), hostname: new URL(url).hostname};
+  }
+
+  /**
+   * @param {number} startTime
+   * @param {number} endTime
+   * @return {string}
+   */
+  static chainDuration(startTime, endTime) {
+    return this.formatNumber((endTime - startTime) * 1000);
   }
 }
 
