@@ -41,8 +41,8 @@ function initTree(tree) {
  * root, so the tree markers can be drawn correctly.
  * @param {!(DetailsRenderer.CRCNode|{number: DetailsRenderer.CRCRequest})} parent
  * @param {string} id
- * @param {!(Array<boolean>|undefined)} treeMarkers
- * @param {!(boolean|undefined)} parentIsLastChild
+ * @param {(Array<boolean>|undefined)} treeMarkers
+ * @param {(boolean|undefined)} parentIsLastChild
  * @param {number} startTime
  * @param {number} transferSize
  * @return {!DetailsRenderer.CRCSegment}
@@ -93,7 +93,7 @@ class DetailsRenderer {
 
   /**
    * @param {!DetailsRenderer.DetailsJSON} details
-   * @return {!Element}
+   * @return {!Node}
    */
   render(details) {
     switch (details.type) {
@@ -263,7 +263,7 @@ class DetailsRenderer {
 
   /**
    * @param {!DetailsRenderer.CRCDetailsJSON} details
-   * @return {!Element}
+   * @return {!Node}
    */
   _renderCriticalRequestChains(details) {
     const tmpl = this._dom.cloneTemplate('#tmpl-lh-crc', this._templateContext);
@@ -436,7 +436,7 @@ DetailsRenderer.ThumbnailDetails; // eslint-disable-line no-unused-expressions
  *     type: string,
  *     header: ({text: string}|undefined),
  *     longestChain: {duration: number, length: number, transferSize: number},
- *     chains: {number: DetailsRenderer.CRCRequest}
+ *     chains: !Object<number, !DetailsRenderer.CRCNode>
  * }}
  */
 DetailsRenderer.CRCDetailsJSON; // eslint-disable-line no-unused-expressions
@@ -452,14 +452,14 @@ DetailsRenderer.CRCDetailsJSON; // eslint-disable-line no-unused-expressions
 DetailsRenderer.CRCRequest; // eslint-disable-line no-unused-expressions
 
 /** @typedef {{
- *     children: {number: DetailsRenderer.CRCRequest},
- *     request: DetailsRenderer.CRCRequest
+ *     children: !Object<number, DetailsRenderer.CRCNode>,
+ *     request: !DetailsRenderer.CRCRequest
  * }}
  */
 DetailsRenderer.CRCNode; // eslint-disable-line no-unused-expressions
 
 /** @typedef {{
- *     node: DetailsRenderer.CRCNode,
+ *     node: !DetailsRenderer.CRCNode,
  *     isLastChild: boolean,
  *     hasChildren: boolean,
  *     startTime: number,
