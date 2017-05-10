@@ -92,6 +92,7 @@ class GatherRunner {
       waitForLoad: true,
       disableJavaScript: !!options.disableJavaScript,
       flags: options.flags,
+      config: options.config,
     }).then(finalUrl => {
       options.url = finalUrl;
     });

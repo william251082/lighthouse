@@ -25,7 +25,7 @@ const URL = require('../lib/url-shim');
 const log = require('../lib/log.js');
 const DevtoolsLog = require('./devtools-log');
 
-const PAUSE_AFTER_LOAD = 5000;
+const DEFAULT_NETWORK_QUIET_THRESHOLD = 5000;
 
 const _uniq = arr => Array.from(new Set(arr));
 
@@ -378,13 +378,13 @@ class Driver {
 
   /**
    * Returns a promise that resolves when the network has been idle for
-   * `pauseAfterLoadMs` ms and a method to cancel internal network listeners and
+   * `networkQuietThresholdMs` ms and a method to cancel internal network listeners and
    * timeout.
-   * @param {string} pauseAfterLoadMs
+   * @param {string} networkQuietThresholdMs
    * @return {{promise: !Promise, cancel: function()}}
    * @private
    */
-  _waitForNetworkIdle(pauseAfterLoadMs) {
+  _waitForNetworkIdle(networkQuietThresholdMs) {
     let idleTimeout;
     let cancel;
 
@@ -395,7 +395,7 @@ class Driver {
         idleTimeout = setTimeout(_ => {
           cancel();
           resolve();
-        }, pauseAfterLoadMs);
+        }, networkQuietThresholdMs);
       };
 
       const onBusy = () => {
@@ -423,19 +423,19 @@ class Driver {
   }
 
   /**
-   * Return a promise that resolves `pauseAfterLoadMs` after the load event
+   * Return a promise that resolves `networkQuietThresholdMs` after the load event
    * fires and a method to cancel internal listeners and timeout.
-   * @param {number} pauseAfterLoadMs
+   * @param {number} networkQuietThresholdMs
    * @return {{promise: !Promise, cancel: function()}}
    * @private
    */
-  _waitForLoadEvent(pauseAfterLoadMs) {
+  _waitForLoadEvent(networkQuietThresholdMs) {
     let loadListener;
     let loadTimeout;
 
     const promise = new Promise((resolve, reject) => {
       loadListener = function() {
-        loadTimeout = setTimeout(resolve, pauseAfterLoadMs);
+        loadTimeout = setTimeout(resolve, networkQuietThresholdMs);
       };
       this.once('Page.loadEventFired', loadListener);
     });
@@ -452,22 +452,22 @@ class Driver {
 
   /**
    * Returns a promise that resolves when:
-   * - it's been pauseAfterLoadMs milliseconds after both onload and the network
+   * - it's been networkQuietThresholdMs milliseconds after both onload and the network
    * has gone idle, or
    * - maxWaitForLoadedMs milliseconds have passed.
    * See https://github.com/GoogleChrome/lighthouse/issues/627 for more.
-   * @param {number} pauseAfterLoadMs
+   * @param {number} networkQuietThresholdMs
    * @param {number} maxWaitForLoadedMs
    * @return {!Promise}
    * @private
    */
-  _waitForFullyLoaded(pauseAfterLoadMs, maxWaitForLoadedMs) {
+  _waitForFullyLoaded(networkQuietThresholdMs, maxWaitForLoadedMs) {
     let maxTimeoutHandle;
 
-    // Listener for onload. Resolves pauseAfterLoadMs ms after load.
-    const waitForLoadEvent = this._waitForLoadEvent(pauseAfterLoadMs);
-    // Network listener. Resolves when the network has been idle for pauseAfterLoadMs.
-    const waitForNetworkIdle = this._waitForNetworkIdle(pauseAfterLoadMs);
+    // Listener for onload. Resolves networkQuietThresholdMs ms after load.
+    const waitForLoadEvent = this._waitForLoadEvent(networkQuietThresholdMs);
+    // Network listener. Resolves when the network has been idle for networkQuietThresholdMs.
+    const waitForNetworkIdle = this._waitForNetworkIdle(networkQuietThresholdMs);
 
     // Wait for both load promises. Resolves on cleanup function the clears load
     // timeout timer.
@@ -554,7 +554,8 @@ class Driver {
   gotoURL(url, options = {}) {
     const waitForLoad = options.waitForLoad || false;
     const disableJS = options.disableJavaScript || false;
-    const pauseAfterLoadMs = (options.flags && options.flags.pauseAfterLoad) || PAUSE_AFTER_LOAD;
+    const networkQuietThresholdMs = (options.config && options.config.networkQuietThresholdMs) ||
+        DEFAULT_NETWORK_QUIET_THRESHOLD;
     const maxWaitMs = (options.flags && options.flags.maxWaitForLoad) ||
         Driver.MAX_WAIT_FOR_FULLY_LOADED;
 
@@ -562,7 +563,7 @@ class Driver {
       .then(_ => this.sendCommand('Page.enable'))
       .then(_ => this.sendCommand('Emulation.setScriptExecutionDisabled', {value: disableJS}))
       .then(_ => this.sendCommand('Page.navigate', {url}))
-      .then(_ => waitForLoad && this._waitForFullyLoaded(pauseAfterLoadMs, maxWaitMs))
+      .then(_ => waitForLoad && this._waitForFullyLoaded(networkQuietThresholdMs, maxWaitMs))
       .then(_ => this._endNetworkStatusMonitoring());
   }
 
