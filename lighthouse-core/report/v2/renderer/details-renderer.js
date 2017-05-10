@@ -27,7 +27,8 @@ function initTree(tree) {
   let startTime = 0;
   const rootNodes = Object.keys(tree);
   if (rootNodes.length > 0) {
-    startTime = tree[rootNodes[0]].request.startTime;
+    const node = /** @type {!DetailsRenderer.CRCNode} */ (tree[rootNodes[0]]);
+    startTime = node.request.startTime;
   }
 
   return {tree, startTime, transferSize};
@@ -38,16 +39,16 @@ function initTree(tree) {
  * parent. Calculates if this node is the last child, whether it has any
  * children itself and what the tree looks like all the way back up to the
  * root, so the tree markers can be drawn correctly.
- * @param {!DetailsRenderer.CRCNode} parent
+ * @param {!(DetailsRenderer.CRCNode|{number: DetailsRenderer.CRCRequest})} parent
  * @param {string} id
- * @param {!(Array<boolean>|undefined)} treeMarker
- * @param {!(DetailsRenderer.CRCNode|undefined)} parentIsLastChild
+ * @param {!(Array<boolean>|undefined)} treeMarkers
+ * @param {!(boolean|undefined)} parentIsLastChild
  * @param {number} startTime
  * @param {number} transferSize
  * @return {!DetailsRenderer.CRCSegment}
  */
 function createSegment(parent, id, treeMarkers, parentIsLastChild, startTime, transferSize) {
-  const node = parent[id];
+  const node = /** @type {!DetailsRenderer.CRCNode} */ (parent[id]);
   const siblings = Object.keys(parent);
   const isLastChild = siblings.indexOf(id) === (siblings.length - 1);
   const hasChildren = Object.keys(node.children).length > 0;
@@ -65,7 +66,7 @@ function createSegment(parent, id, treeMarkers, parentIsLastChild, startTime, tr
     isLastChild,
     hasChildren,
     startTime,
-    transferSize: (transferSize + node.request.transferSize),
+    transferSize: transferSize + node.request.transferSize,
     treeMarkers: newTreeMarkers
   };
 }
@@ -74,6 +75,7 @@ function createSegment(parent, id, treeMarkers, parentIsLastChild, startTime, tr
 class DetailsRenderer {
   /**
    * @param {!DOM} dom
+   * @param {!Document|!Element} templateContext
    */
   constructor(dom, templateContext) {
     /** @private {!DOM} */
@@ -109,8 +111,9 @@ class DetailsRenderer {
         return this._renderCode(details);
       case 'node':
         return this.renderNode(/** @type {!DetailsRenderer.NodeDetailsJSON} */(details));
-      case 'tree':
-        return this._renderCriticalRequestChains(details);
+      case 'crc':
+        return this._renderCriticalRequestChains(
+            /** @type {!DetailsRenderer.CRCDetailsJSON} */ (details));
       case 'list':
         return this._renderList(/** @type {!DetailsRenderer.ListDetailsJSON} */ (details));
       default:
@@ -259,8 +262,8 @@ class DetailsRenderer {
   }
 
   /**
-   * @param {!DetailsRenderer.DetailsJSON} details
-   * @return {!Node}
+   * @param {!DetailsRenderer.CRCDetailsJSON} details
+   * @return {!Element}
    */
   _renderCriticalRequestChains(details) {
     const tmpl = this._dom.cloneTemplate('#tmpl-lh-crc', this._templateContext);
@@ -279,6 +282,7 @@ class DetailsRenderer {
     /**
      * Creates the DOM for a tree segment.
      * @param {!DetailsRenderer.CRCSegment} segment
+     * @return {!Node}
      */
     const createChainNode = segment => {
       const chainsEl = this._dom.cloneTemplate('#tmpl-lh-crc__chains', tmpl);
@@ -429,22 +433,30 @@ DetailsRenderer.TableDetailsJSON; // eslint-disable-line no-unused-expressions
 DetailsRenderer.ThumbnailDetails; // eslint-disable-line no-unused-expressions
 
 /** @typedef {{
- *     children: {number: DetailsRenderer.CRCRequest},
- *     request: DetailsRenderer.CRCRequest
+ *     type: string,
+ *     header: ({text: string}|undefined),
+ *     longestChain: {duration: number, length: number, transferSize: number},
+ *     chains: {number: DetailsRenderer.CRCRequest}
  * }}
  */
-DetailsRenderer.CRCNode; // eslint-disable-line no-unused-expressions
-
+DetailsRenderer.CRCDetailsJSON; // eslint-disable-line no-unused-expressions
 
 /** @typedef {{
  *     endTime: number,
  *     responseReceivedTime: number,
  *     startTime: number,
- *     transferTime: number,
+ *     transferSize: number,
  *     url: string
  * }}
  */
 DetailsRenderer.CRCRequest; // eslint-disable-line no-unused-expressions
+
+/** @typedef {{
+ *     children: {number: DetailsRenderer.CRCRequest},
+ *     request: DetailsRenderer.CRCRequest
+ * }}
+ */
+DetailsRenderer.CRCNode; // eslint-disable-line no-unused-expressions
 
 /** @typedef {{
  *     node: DetailsRenderer.CRCNode,
@@ -455,4 +467,4 @@ DetailsRenderer.CRCRequest; // eslint-disable-line no-unused-expressions
  *     treeMarkers: !Array<boolean>
  * }}
  */
- DetailsRenderer.CRCSegment; // eslint-disable-line no-unused-expressions
+DetailsRenderer.CRCSegment; // eslint-disable-line no-unused-expressions
