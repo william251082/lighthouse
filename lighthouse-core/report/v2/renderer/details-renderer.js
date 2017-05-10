@@ -45,7 +45,7 @@ class DetailsRenderer {
       case 'code':
         return this._renderCode(details);
       case 'node':
-        return this._renderNode(/** @type {!DetailsRenderer.NodeDetailsJSON} */ (details));
+        return this.renderNode(/** @type {!DetailsRenderer.NodeDetailsJSON} */ (details));
       case 'list':
         return this._renderList(/** @type {!DetailsRenderer.ListDetailsJSON} */ (details));
       default:
@@ -150,8 +150,9 @@ class DetailsRenderer {
   /**
    * @param {!DetailsRenderer.NodeDetailsJSON} item
    * @return {!Element}
+   * @protected
    */
-  _renderNode(item) {
+  renderNode(item) {
     const element = this._dom.createElement('span', 'lh-node');
     element.textContent = item.snippet;
     element.title = item.selector;
