@@ -82,6 +82,7 @@ export function getFlags() {
         'chrome-flags':
             'Custom flags to pass to Chrome (space-delimited). For a full list of flags, see http://peter.sh/experiments/chromium-command-line-switches/.',
         'perf': 'Use a performance-test-only configuration',
+        'a11y': 'Use an accessibility-test-only configuration',
         'port': 'The port to use for the debugging protocol. Use 0 for a random port',
         'max-wait-for-load':
             'The timeout (in milliseconds) to wait before the page is considered done loading and the run should continue. WARNING: Very high values can lead to large traces and instability',
@@ -106,8 +107,8 @@ Example: --output-path=./lighthouse-results.html`,
       .boolean([
         'disable-storage-reset', 'disable-device-emulation', 'disable-cpu-throttling',
         'disable-network-throttling', 'save-assets', 'save-artifacts', 'list-all-audits',
-        'list-trace-categories', 'perf', 'view', 'skip-autolaunch', 'select-chrome', 'verbose',
-        'quiet', 'help', 'interactive'
+        'list-trace-categories', 'perf', 'a11y', 'view', 'skip-autolaunch', 'select-chrome',
+        'verbose', 'quiet', 'help', 'interactive'
       ])
       .choices('output', GetValidOutputOptions())
 
