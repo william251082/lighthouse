@@ -49,6 +49,14 @@ class DOM {
   }
 
  /**
+   * @param {string} text
+   * @return {!Node}
+   */
+  createText(text) {
+    return this._document.createTextNode(text);
+  }
+
+ /**
    * @param {!Element} parentElem
    * @param {string} elementName
    * @param {string=} className

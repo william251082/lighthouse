@@ -45,8 +45,11 @@ function runA11yChecks() {
       'server-side-image-map': {enabled: false}
     }
   }).then(axeResult => {
-    axeResult.violations.forEach(v => v.nodes.forEach(node =>
-      node.nodePath = getNodePath(node.element)));
+    // Augment the node objects with outerHTML snippet & custom path string
+    axeResult.violations.forEach(v => v.nodes.forEach(node => {
+      node.path = getNodePath(node.element);
+      node.snippet = getOuterHTMLSnippet(node.element);
+    }));
 
     return axeResult;
   });
@@ -55,10 +58,11 @@ function runA11yChecks() {
   //   https://github.com/ChromeDevTools/devtools-frontend/blob/7a2e162ddefd/front_end/sdk/DOMModel.js#L530-L552
   // TODO: Doesn't handle frames or shadow roots...
   function getNodePath(node) {
+    /* global Node */
     function getNodeIndex(node) {
       let index = 0;
       while (node = node.previousSibling) {
-        /* global Node */ // skip empty text nodes
+        // skip empty text nodes
         if (node.nodeType === Node.TEXT_NODE &&
             node.textContent.trim().length === 0) continue;
         index++;
@@ -74,6 +78,12 @@ function runA11yChecks() {
     }
     path.reverse();
     return path.join(',');
+  }
+
+  function getOuterHTMLSnippet(node) {
+    const reOpeningTag = /^.*?\>/;
+    const match = node.outerHTML.match(reOpeningTag);
+    return match && match[0];
   }
 }
 
@@ -93,31 +103,7 @@ class Accessibility extends Gatherer {
       if (!returnedValue || !Array.isArray(returnedValue.violations)) {
         throw new Error('Unable to parse axe results' + returnedValue);
       }
-      // resolve readable node descriptions for display
-      const promises = [];
-
-      // DISABLED FOR NOW BECAUSE BROKEN
-      // returnedValue.violations.forEach(v =>
-      //   v.nodes.forEach(node => {
-      //     const p = this.getNodeDescription(node.nodePath, driver).then(
-      //       desc => (node.description = desc)
-      //     );
-      //     promises.push(p);
-      //   })
-      // );
-
-      return Promise.all(promises).then(_ => returnedValue);
-    });
-  }
-
-  getNodeDescription(path, driver) {
-    // currently this is failing.. not sure why when the equivalent is fine in devtools..
-    return Promise.resolve().then(_ => {
-      return driver.sendCommand('DOM.pushNodeByPathToFrontend', {path}).then(data => {
-        return driver.sendCommand('DOM.resolveNode', {nodeId: data.nodeId}).then(data => {
-          return data.object.description;
-        });
-      });
+      return returnedValue;
     });
   }
 }

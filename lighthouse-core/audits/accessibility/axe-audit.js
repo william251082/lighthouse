@@ -39,9 +39,9 @@ class AxeAudit extends Audit {
     if (rule && rule.nodes) {
       nodeDetails = rule.nodes.map(node => ({
         type: 'node',
-        text: node.target,
-        path: node.nodePath,
-        description: node.description
+        selector: node.target,
+        path: node.path,
+        snippet: node.snippet
       }));
     }
 
@@ -55,7 +55,7 @@ class AxeAudit extends Audit {
         type: 'list',
         header: {
           type: 'text',
-          text: this.meta.name
+          text: 'View failing elements'
         },
         items: nodeDetails
       }
