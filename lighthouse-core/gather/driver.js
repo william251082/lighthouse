@@ -25,13 +25,15 @@ const URL = require('../lib/url-shim');
 const log = require('../lib/log.js');
 const DevtoolsLog = require('./devtools-log');
 
+const DEFAULT_PAUSE_AFTER_LOAD = 0;
 const DEFAULT_NETWORK_QUIET_THRESHOLD = 5000;
+const DEFAULT_PAUSE_AFTER_NETWORK_QUIET = 0;
 
 const _uniq = arr => Array.from(new Set(arr));
 
 class Driver {
   static get MAX_WAIT_FOR_FULLY_LOADED() {
-    return 25 * 1000;
+    return 30 * 1000;
   }
 
   /**
@@ -380,18 +382,19 @@ class Driver {
    * Returns a promise that resolves when the network has been idle for
    * `networkQuietThresholdMs` ms and a method to cancel internal network listeners and
    * timeout.
-   * @param {string} networkQuietThresholdMs
+   * @param {number} networkQuietThresholdMs
+   * @param {number} pauseAfterNetworkQuietMs
    * @return {{promise: !Promise, cancel: function()}}
    * @private
    */
-  _waitForNetworkIdle(networkQuietThresholdMs) {
+  _waitForNetworkIdle(networkQuietThresholdMs, pauseAfterNetworkQuietMs) {
     let idleTimeout;
     let cancel;
 
     const promise = new Promise((resolve, reject) => {
       const onIdle = () => {
         // eslint-disable-next-line no-use-before-define
-        this._networkStatusMonitor.once('networkbusy', onBusy);
+        this._networkStatusMonitor.once('network-2-busy', onBusy);
         idleTimeout = setTimeout(_ => {
           cancel();
           resolve();
@@ -399,21 +402,24 @@ class Driver {
       };
 
       const onBusy = () => {
-        this._networkStatusMonitor.once('networkidle', onIdle);
+        this._networkStatusMonitor.once('network-2-idle', onIdle);
         clearTimeout(idleTimeout);
       };
 
       cancel = () => {
         clearTimeout(idleTimeout);
-        this._networkStatusMonitor.removeListener('networkbusy', onBusy);
-        this._networkStatusMonitor.removeListener('networkidle', onIdle);
+        this._networkStatusMonitor.removeListener('network-2-busy', onBusy);
+        this._networkStatusMonitor.removeListener('network-2-idle', onIdle);
       };
 
-      if (this._networkStatusMonitor.isIdle()) {
+      if (this._networkStatusMonitor.is2Idle()) {
         onIdle();
       } else {
         onBusy();
       }
+    }).then(() => {
+      // Once idle has been determined wait another pauseAfterLoadMs
+      return new Promise(resolve => setTimeout(resolve, pauseAfterNetworkQuietMs));
     });
 
     return {
@@ -423,19 +429,19 @@ class Driver {
   }
 
   /**
-   * Return a promise that resolves `networkQuietThresholdMs` after the load event
+   * Return a promise that resolves `pauseAfterLoadMs` after the load event
    * fires and a method to cancel internal listeners and timeout.
-   * @param {number} networkQuietThresholdMs
+   * @param {number} pauseAfterLoadMs
    * @return {{promise: !Promise, cancel: function()}}
    * @private
    */
-  _waitForLoadEvent(networkQuietThresholdMs) {
+  _waitForLoadEvent(pauseAfterLoadMs) {
     let loadListener;
     let loadTimeout;
 
     const promise = new Promise((resolve, reject) => {
       loadListener = function() {
-        loadTimeout = setTimeout(resolve, networkQuietThresholdMs);
+        loadTimeout = setTimeout(resolve, pauseAfterLoadMs);
       };
       this.once('Page.loadEventFired', loadListener);
     });
@@ -456,25 +462,30 @@ class Driver {
    * has gone idle, or
    * - maxWaitForLoadedMs milliseconds have passed.
    * See https://github.com/GoogleChrome/lighthouse/issues/627 for more.
+   * @param {number} pauseAfterLoadMs
    * @param {number} networkQuietThresholdMs
+   * @param {number} pauseAfterNetworkQuietMs
    * @param {number} maxWaitForLoadedMs
    * @return {!Promise}
    * @private
    */
-  _waitForFullyLoaded(networkQuietThresholdMs, maxWaitForLoadedMs) {
+  _waitForFullyLoaded(pauseAfterLoadMs, networkQuietThresholdMs, pauseAfterNetworkQuietMs,
+      maxWaitForLoadedMs) {
     let maxTimeoutHandle;
 
-    // Listener for onload. Resolves networkQuietThresholdMs ms after load.
-    const waitForLoadEvent = this._waitForLoadEvent(networkQuietThresholdMs);
-    // Network listener. Resolves when the network has been idle for networkQuietThresholdMs.
-    const waitForNetworkIdle = this._waitForNetworkIdle(networkQuietThresholdMs);
+    // Listener for onload. Resolves pauseAfterLoadMs ms after load.
+    const waitForLoadEvent = this._waitForLoadEvent(pauseAfterLoadMs);
+    // Network listener. Resolves pauseAfterNetworkQuietMs after when the network has been idle for
+    // networkQuietThresholdMs.
+    const waitForNetworkIdle = this._waitForNetworkIdle(networkQuietThresholdMs,
+        pauseAfterNetworkQuietMs);
 
     // Wait for both load promises. Resolves on cleanup function the clears load
     // timeout timer.
     const loadPromise = Promise.all([
       waitForLoadEvent.promise,
       waitForNetworkIdle.promise
-    ]).then(_ => {
+    ]).then(() => {
       return function() {
         log.verbose('Driver', 'loadEventFired and network considered idle');
         clearTimeout(maxTimeoutHandle);
@@ -554,16 +565,25 @@ class Driver {
   gotoURL(url, options = {}) {
     const waitForLoad = options.waitForLoad || false;
     const disableJS = options.disableJavaScript || false;
-    const networkQuietThresholdMs = (options.config && options.config.networkQuietThresholdMs) ||
-        DEFAULT_NETWORK_QUIET_THRESHOLD;
-    const maxWaitMs = (options.flags && options.flags.maxWaitForLoad) ||
-        Driver.MAX_WAIT_FOR_FULLY_LOADED;
+
+    let pauseAfterLoadMs = options.config && options.config.pauseAfterLoadMs;
+    let networkQuietThresholdMs = options.config && options.config.networkQuietThresholdMs;
+    let pauseAfterNetworkQuietMs = options.config && options.config.pauseAfterNetworkQuietMs;
+    let maxWaitMs = options.flags && options.flags.maxWaitForLoad;
+
+    /* eslint-disable max-len */
+    if (typeof pauseAfterLoadMs !== 'number') pauseAfterLoadMs = DEFAULT_PAUSE_AFTER_LOAD;
+    if (typeof networkQuietThresholdMs !== 'number') networkQuietThresholdMs = DEFAULT_NETWORK_QUIET_THRESHOLD;
+    if (typeof pauseAfterNetworkQuietMs !== 'number') pauseAfterNetworkQuietMs = DEFAULT_PAUSE_AFTER_NETWORK_QUIET;
+    if (typeof maxWaitMs !== 'number') maxWaitMs = Driver.MAX_WAIT_FOR_FULLY_LOADED;
+    /* eslint-enable max-len */
 
     return this._beginNetworkStatusMonitoring(url)
       .then(_ => this.sendCommand('Page.enable'))
       .then(_ => this.sendCommand('Emulation.setScriptExecutionDisabled', {value: disableJS}))
       .then(_ => this.sendCommand('Page.navigate', {url}))
-      .then(_ => waitForLoad && this._waitForFullyLoaded(networkQuietThresholdMs, maxWaitMs))
+      .then(_ => waitForLoad && this._waitForFullyLoaded(pauseAfterLoadMs,
+          networkQuietThresholdMs, pauseAfterNetworkQuietMs, maxWaitMs))
       .then(_ => this._endNetworkStatusMonitoring());
   }
 
@@ -690,10 +710,7 @@ class Driver {
       .then(_ => this.sendCommand('Tracing.start', tracingOpts));
   }
 
-  /**
-   * @param {number=} pauseBeforeTraceEndMs Wait this many milliseconds before ending the trace
-   */
-  endTrace(pauseBeforeTraceEndMs = 0) {
+  endTrace() {
     return new Promise((resolve, reject) => {
       // When the tracing has ended this will fire with a stream handle.
       this.once('Tracing.tracingComplete', streamHandle => {
@@ -701,9 +718,8 @@ class Driver {
             .then(traceContents => resolve(traceContents), reject);
       });
 
-      // Issue the command to stop tracing after an optional delay.
-      // Audits like TTI may require slightly longer trace to find a minimum window size.
-      setTimeout(() => this.sendCommand('Tracing.end').catch(reject), pauseBeforeTraceEndMs);
+      // Issue the command to stop tracing.
+      return this.sendCommand('Tracing.end').catch(reject);
     });
   }
 
