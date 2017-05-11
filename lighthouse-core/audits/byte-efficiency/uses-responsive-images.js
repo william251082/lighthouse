@@ -42,8 +42,7 @@ class UsesResponsiveImages extends ByteEfficiencyAudit {
       informative: true,
       helpText:
         'Serve images that are smaller than the user\'s viewport to save cellular data ' +
-        'and improve load time. Consider using responsive images or client hints for the ' +
-        'following images. ' +
+        'and improve load time. ' +
         '[Learn more](https://developers.google.com/web/tools/lighthouse/audits/oversized-images).',
       requiredArtifacts: ['ImageUsage', 'ViewportDimensions', 'devtoolsLogs']
     };
