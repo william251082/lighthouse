@@ -30,7 +30,7 @@ module.exports = {
   {
     "passName": "offlinePass",
     "useThrottling": false,
-    "networkQuietThresholdMs": 500,
+    "networkQuietThresholdMs": 100,
     "gatherers": [
       "service-worker",
       "offline",
@@ -40,7 +40,7 @@ module.exports = {
   {
     "passName": "redirectPass",
     "useThrottling": false,
-    "networkQuietThresholdMs": 500,
+    "networkQuietThresholdMs": 100,
     // Speed up the redirect pass by blocking stylesheets, fonts, and images
     "blockedUrlPatterns": ["*.css", "*.jpg", "*.jpeg", "*.png", "*.gif", "*.svg", "*.ttf", "*.woff", "*.woff2"],
     "gatherers": [
