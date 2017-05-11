@@ -83,16 +83,11 @@ class Util {
 
   /**
    * @param {!URL} parsedUrl
-   * @param {{numPathParts: number, preserveQuery: boolean, preserveHost: boolean}=} options
+   * @param {{numPathParts: (number|undefined), preserveQuery: (boolean|undefined), preserveHost: (boolean|undefined)}=} options
    * @return {string}
    */
-  static getDisplayName(parsedUrl, options) {
-    options = Object.assign({
-      numPathParts: 2,
-      preserveQuery: true,
-      preserveHost: false,
-    }, options);
-
+  static getDisplayName(parsedUrl,
+      {numPathParts = 2, preserveQuery = true, preserveHost = false} = {}) {
     let name;
 
     if (parsedUrl.protocol === 'about:' || parsedUrl.protocol === 'data:') {
@@ -101,14 +96,14 @@ class Util {
     } else {
       name = parsedUrl.pathname;
       const parts = name.split('/').filter(part => part.length);
-      if (options.numPathParts && parts.length > options.numPathParts) {
-        name = ELLIPSIS + parts.slice(-1 * options.numPathParts).join('/');
+      if (numPathParts && parts.length > numPathParts) {
+        name = ELLIPSIS + parts.slice(-1 * numPathParts).join('/');
       }
 
-      if (options.preserveHost) {
+      if (preserveHost) {
         name = `${parsedUrl.host}/${name.replace(/^\//, '')}`;
       }
-      if (options.preserveQuery) {
+      if (preserveQuery) {
         name = `${name}${parsedUrl.search}`;
       }
     }
@@ -146,10 +141,11 @@ class Util {
   /**
    * Split a URL into a file and hostname for easy display.
    * @param {string} url
-   * @return {!{file: string, hostname: string}}
+   * @return {{file: string, hostname: string}}
    */
   static parseURL(url) {
-    return {file: this.getDisplayName(new URL(url)), hostname: new URL(url).hostname};
+    const parsedUrl = new URL(url);
+    return {file: Util.getDisplayName(parsedUrl), hostname: parsedUrl.hostname};
   }
 
   /**
@@ -158,7 +154,7 @@ class Util {
    * @return {string}
    */
   static chainDuration(startTime, endTime) {
-    return this.formatNumber((endTime - startTime) * 1000);
+    return Util.formatNumber((endTime - startTime) * 1000);
   }
 }
 

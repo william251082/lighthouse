@@ -19,15 +19,15 @@
 
 /**
  * Create render context for critical-request-chain tree display.
- * @param {!DetailsRenderer.CRCNode} tree
- * @return {!{tree: DetailsRenderer.CRCNode, startTime: number, transferSize: number}}
+ * @param {!Object<string, !DetailsRenderer.CRCNode>} tree
+ * @return {{tree: !Object<string, !DetailsRenderer.CRCNode>, startTime: number, transferSize: number}}
  */
 function initTree(tree) {
   const transferSize = 0;
   let startTime = 0;
   const rootNodes = Object.keys(tree);
   if (rootNodes.length > 0) {
-    const node = /** @type {!DetailsRenderer.CRCNode} */ (tree[rootNodes[0]]);
+    const node = tree[rootNodes[0]];
     startTime = node.request.startTime;
   }
 
@@ -37,18 +37,18 @@ function initTree(tree) {
 /**
  * Helper to create context for each critical-request-chain node based on its
  * parent. Calculates if this node is the last child, whether it has any
- * children itself and what the tree looks like all the way back up to the
- * root, so the tree markers can be drawn correctly.
- * @param {!(DetailsRenderer.CRCNode|{number: DetailsRenderer.CRCRequest})} parent
+ * children itself and what the tree looks like all the way back up to the root,
+ * so the tree markers can be drawn correctly.
+ * @param {!Object<string, !DetailsRenderer.CRCNode>} parent
  * @param {string} id
- * @param {(Array<boolean>|undefined)} treeMarkers
- * @param {(boolean|undefined)} parentIsLastChild
  * @param {number} startTime
  * @param {number} transferSize
+ * @param {!Array<boolean>=} treeMarkers
+ * @param {boolean=} parentIsLastChild
  * @return {!DetailsRenderer.CRCSegment}
  */
-function createSegment(parent, id, treeMarkers, parentIsLastChild, startTime, transferSize) {
-  const node = /** @type {!DetailsRenderer.CRCNode} */ (parent[id]);
+function createSegment(parent, id, startTime, transferSize, treeMarkers, parentIsLastChild) {
+  const node = parent[id];
   const siblings = Object.keys(parent);
   const isLastChild = siblings.indexOf(id) === (siblings.length - 1);
   const hasChildren = Object.keys(node.children).length > 0;
@@ -346,8 +346,8 @@ class DetailsRenderer {
 
       for (const key of Object.keys(segment.node.children)) {
         const childSegment = createSegment(
-            segment.node.children, key, segment.treeMarkers, segment.isLastChild,
-            segment.startTime, segment.transferSize);
+            segment.node.children, key, segment.startTime, segment.transferSize,
+            segment.treeMarkers, segment.isLastChild);
         buildTree(childSegment);
       }
     }
@@ -355,8 +355,7 @@ class DetailsRenderer {
     const root = initTree(details.chains);
 
     for (const key of Object.keys(root.tree)) {
-      const segment = createSegment(root.tree, key, undefined, undefined,
-          root.startTime, root.transferSize);
+      const segment = createSegment(root.tree, key, root.startTime, root.transferSize);
       buildTree(segment);
     }
 
@@ -436,7 +435,7 @@ DetailsRenderer.ThumbnailDetails; // eslint-disable-line no-unused-expressions
  *     type: string,
  *     header: ({text: string}|undefined),
  *     longestChain: {duration: number, length: number, transferSize: number},
- *     chains: !Object<number, !DetailsRenderer.CRCNode>
+ *     chains: !Object<string, !DetailsRenderer.CRCNode>
  * }}
  */
 DetailsRenderer.CRCDetailsJSON; // eslint-disable-line no-unused-expressions
@@ -451,12 +450,18 @@ DetailsRenderer.CRCDetailsJSON; // eslint-disable-line no-unused-expressions
  */
 DetailsRenderer.CRCRequest; // eslint-disable-line no-unused-expressions
 
-/** @typedef {{
- *     children: !Object<number, DetailsRenderer.CRCNode>,
- *     request: !DetailsRenderer.CRCRequest
- * }}
+/**
+ * Record type so children can circularly have CRCNode values.
+ * @struct
+ * @record
  */
-DetailsRenderer.CRCNode; // eslint-disable-line no-unused-expressions
+DetailsRenderer.CRCNode = function() {};
+
+/** @type {!Object<string, !DetailsRenderer.CRCNode>} */
+DetailsRenderer.CRCNode.prototype.children; // eslint-disable-line no-unused-expressions
+
+/** @type {!DetailsRenderer.CRCRequest} */
+DetailsRenderer.CRCNode.prototype.request; // eslint-disable-line no-unused-expressions
 
 /** @typedef {{
  *     node: !DetailsRenderer.CRCNode,
