@@ -77,8 +77,8 @@ URL.originsMatch = function originsMatch(urlA, urlB) {
  * @param {{numPathParts: number, preserveQuery: boolean, preserveHost: boolean}=} options
  * @return {string}
  */
-URL.getDisplayName = function getDisplayName(url, options) {
-  return Util.getDisplayName(new URL(url), options);
+URL.getURLDisplayName = function getURLDisplayName(url, options) {
+  return Util.getURLDisplayName(new URL(url), options);
 };
 
 // There is fancy URL rewriting logic for the chrome://settings page that we need to work around.

@@ -86,7 +86,7 @@ class Util {
    * @param {{numPathParts: (number|undefined), preserveQuery: (boolean|undefined), preserveHost: (boolean|undefined)}=} options
    * @return {string}
    */
-  static getDisplayName(parsedUrl,
+  static getURLDisplayName(parsedUrl,
       {numPathParts = 2, preserveQuery = true, preserveHost = false} = {}) {
     let name;
 
@@ -145,7 +145,7 @@ class Util {
    */
   static parseURL(url) {
     const parsedUrl = new URL(url);
-    return {file: Util.getDisplayName(parsedUrl), hostname: parsedUrl.hostname};
+    return {file: Util.getURLDisplayName(parsedUrl), hostname: parsedUrl.hostname};
   }
 
   /**
