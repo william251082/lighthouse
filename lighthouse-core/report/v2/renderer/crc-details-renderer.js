@@ -180,7 +180,7 @@ class CriticalRequestChainRenderer {
 
     const detailsEl = this._dom.find('.lh-details', this._tmpl);
 
-    this._dom.find(':scope > summary', detailsEl).textContent = details.header.text;
+    this._dom.find('.lh-details > summary', this._tmpl).textContent = details.header.text;
 
     // Construct visual tree.
     const root = this.initTree(details.chains);
